@@ -107,12 +107,10 @@
       tipoSelect.addEventListener("change", function () {
         actualizarFuente(this);
         calcularAhorro(row);
-        generarGraficos(obtenerDatosTabla());
       });
 
       actualizarFuente(tipoSelect);
       agregarEventos(row);
-      generarGraficos(obtenerDatosTabla());
     }
 
     function actualizarFuente(select) {
@@ -210,8 +208,14 @@
       });
 
       const graficar = (ctxId, dataMap, oldChartRef) => {
-        const ctx = document.getElementById(ctxId).getContext("2d");
+        const canvas = document.getElementById(ctxId);
+        if (!canvas) return;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
         if (oldChartRef) oldChartRef.destroy();
+
         return new Chart(ctx, {
           type: 'pie',
           data: {
