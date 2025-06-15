@@ -107,10 +107,12 @@
       tipoSelect.addEventListener("change", function () {
         actualizarFuente(this);
         calcularAhorro(row);
+        generarGraficos(obtenerDatosTabla());
       });
 
       actualizarFuente(tipoSelect);
       agregarEventos(row);
+      generarGraficos(obtenerDatosTabla());
     }
 
     function actualizarFuente(select) {
@@ -130,7 +132,10 @@
 
     function agregarEventos(row) {
       const inputs = row.querySelectorAll("input, select");
-      inputs.forEach(input => input.addEventListener("input", () => calcularAhorro(row)));
+      inputs.forEach(input => input.addEventListener("input", () => {
+        calcularAhorro(row);
+        generarGraficos(obtenerDatosTabla());
+      }));
     }
 
     function calcularAhorro(row) {
@@ -144,6 +149,20 @@
       const porcentaje = parseFloat(porcentajeInput.value) || 0;
       const ahorro = (tipo === "Ingreso") ? (monto * porcentaje / 100).toFixed(2) : "0.00";
       row.cells[6].querySelector("span").textContent = ahorro;
+    }
+
+    function obtenerDatosTabla() {
+      const filas = document.querySelectorAll("#cuerpoTabla tr");
+      const datos = [];
+
+      filas.forEach(row => {
+        const tipo = row.cells[1].querySelector("select").value;
+        const fuente = row.cells[2].querySelector("select").value;
+        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value)) || 0;
+        datos.push({ tipo, fuente, monto });
+      });
+
+      return datos;
     }
 
     function guardarEntradas() {
