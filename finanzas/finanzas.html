@@ -5,28 +5,28 @@
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="finanzas.css">
 
-
-  <!-- Chart.js y Firebase SDKs -->
+  <!-- Google Charts y Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.js" defer></script>
-  <script src="https://www.gstatic.com/charts/loader.js" defer></script> <!-- Google Charts -->
+  <script src="https://www.gstatic.com/charts/loader.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
   <script src="finanzas.js" defer></script>
-
-  <style>
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    input, select { width: 100%; box-sizing: border-box; }
-    #mensaje { margin-top: 10px; color: green; }
-    button { margin: 10px 0; }
-    .grafico-container { width: 45%; display: inline-block; vertical-align: top; margin: 20px; }
-    .grafico-container h3 { text-align: center; }
-  </style>
 </head>
 <body>
+  <button class="cerrar-sesion" onclick="logout()">🚪</button>
   <h2>Mis Finanzas</h2>
-  <button onclick="logout()">Cerrar sesión</button>
+
+  <div class="graficos-container">
+    <div class="grafico">
+      <h3>📈 Ingresos por Fuente</h3>
+      <div id="graficoIngresos"></div>
+    </div>
+    <div class="grafico">
+      <h3>📉 Gastos por Fuente</h3>
+      <div id="graficoGastos"></div>
+    </div>
+  </div>
 
   <form onsubmit="guardarEntradas(); return false;">
     <table id="tablaFinanzas">
@@ -44,20 +44,13 @@
       </thead>
       <tbody id="cuerpoTabla"></tbody>
     </table>
-    <button type="button" onclick="agregarFila()">➕ Agregar Ingreso o Gasto</button>
-    <button type="submit">💾 Guardar Todo</button>
+
+    <div class="botones-centro">
+      <button type="button" onclick="agregarFila()">➕ Agregar Ingreso o Gasto</button>
+      <button type="submit">💾 Guardar Todo</button>
+    </div>
   </form>
 
   <div id="mensaje"></div>
-
-  <div class="grafico-container">
-    <h3>📈 Distribución de Ingresos por Fuente</h3>
-    <div id="graficoIngresos" style="height: 300px;"></div>
-  </div>
-
-  <div class="grafico-container">
-    <h3>📉 Distribución de Gastos por Fuente</h3>
-    <div id="graficoGastos" style="height: 300px;"></div>
-  </div>
 </body>
 </html>

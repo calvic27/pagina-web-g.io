@@ -4,24 +4,60 @@ body {
   margin: 0;
   padding: 20px;
   color: #333;
+  position: relative;
+}
+
+.cerrar-sesion {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background-color: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
 }
 
 h2 {
   text-align: center;
   color: #007bff;
+  margin-top: 0;
+}
+
+.graficos-container {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.grafico {
+  width: 45%;
+  min-width: 300px;
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+
+.grafico h3 {
+  text-align: center;
+}
+
+#graficoIngresos, #graficoGastos {
+  height: 300px;
 }
 
 table {
   border-collapse: collapse;
   width: 100%;
-  margin-top: 20px;
   background-color: white;
 }
 
 th, td {
   border: 1px solid #ddd;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
+  font-size: 14px;
 }
 
 th {
@@ -29,23 +65,22 @@ th {
   color: white;
 }
 
-input, select {
+td input, td select {
   width: 100%;
   box-sizing: border-box;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 13px;
 }
 
 button {
-  margin: 10px 0;
-  padding: 10px 20px;
+  padding: 8px 16px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 14px;
+  margin: 5px;
 }
 
 button:hover {
@@ -53,25 +88,24 @@ button:hover {
 }
 
 .eliminar-btn {
-  background-color: #dc3545;
-  padding: 6px 12px;
-  font-size: 12px;
-  border-radius: 4px;
+  background-color: transparent;
+  color: #dc3545;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.eliminar-btn::before {
+  content: "🗑️";
 }
 
 .eliminar-btn:hover {
-  background-color: #c82333;
+  opacity: 0.7;
 }
 
-#graficoIngresos, #graficoGastos {
-  height: 300px;
-}
-
-.grafico-container {
-  width: 45%;
-  display: inline-block;
-  vertical-align: top;
-  margin: 20px;
+.botones-centro {
+  text-align: center;
+  margin-top: 20px;
 }
 
 #mensaje {
