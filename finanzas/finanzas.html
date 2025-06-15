@@ -1,15 +1,18 @@
+<!DOCTYPE html>
 <html>
 <head>
   <title>Mis Finanzas</title>
   <meta charset="UTF-8" />
   <link rel="stylesheet" href="estilos.css">
+
   <!-- Chart.js y Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.js" defer></script>
+  <script src="https://www.gstatic.com/charts/loader.js" defer></script> <!-- ✅ Google Charts -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js" defer></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js" defer></script>
-  <!-- Tu script principal -->
   <script src="finanzas.js" defer></script>
+
   <style>
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
@@ -35,6 +38,7 @@
           <th>Monto</th>
           <th>% Ahorro</th>
           <th>Ahorro Neto</th>
+          <th>Acción</th>
         </tr>
       </thead>
       <tbody id="cuerpoTabla"></tbody>
@@ -47,11 +51,12 @@
 
   <div class="grafico-container">
     <h3>📈 Distribución de Ingresos por Fuente</h3>
-    <canvas id="graficoIngresos"></canvas>
+    <div id="graficoIngresos" style="height: 300px;"></div>
   </div>
+
   <div class="grafico-container">
     <h3>📉 Distribución de Gastos por Fuente</h3>
-    <canvas id="graficoGastos"></canvas>
+    <div id="graficoGastos" style="height: 300px;"></div>
   </div>
 </body>
 </html>
