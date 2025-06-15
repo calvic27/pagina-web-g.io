@@ -14,27 +14,44 @@
   <script src="finanzas.js" defer></script>
 </head>
 <body>
+  <!-- Botón de cierre de sesión -->
   <button class="cerrar-sesion" onclick="logout()">🚪</button>
   <h2>Mis Finanzas</h2>
 
-  <div class="graficos-container">
-  <div class="grafico">
-    <div class="grafico-header">
-      <h3>📈 Ingresos por Fuente</h3>
-      <button class="toggle-btn" onclick="toggleGrafico('graficoIngresos', this)">−</button>
-    </div>
-    <div id="graficoIngresos" class="grafico-body"></div>
+  <!-- Botón para ocultar gráficos -->
+  <div class="graficos-toggle">
+    <button class="toggle-btn" onclick="toggleTodosGraficos(this)">− Ocultar gráficos</button>
   </div>
 
-  <div class="grafico">
-    <div class="grafico-header">
-      <h3>📉 Gastos por Fuente</h3>
-      <button class="toggle-btn" onclick="toggleGrafico('graficoGastos', this)">−</button>
+  <!-- Gráficos de torta -->
+  <section class="seccion-graficos">
+    <div class="grafico-box">
+      <div class="grafico-header">
+        <h3>📈 Ingresos por Fuente</h3>
+      </div>
+      <div id="graficoIngresos" class="grafico-body"></div>
     </div>
-    <div id="graficoGastos" class="grafico-body"></div>
-  </div>
-</div>
 
+    <div class="grafico-box">
+      <div class="grafico-header">
+        <h3>📉 Gastos por Fuente</h3>
+      </div>
+      <div id="graficoGastos" class="grafico-body"></div>
+    </div>
+  </section>
+
+  <!-- Botón para ocultar gráfico de cascada/velas -->
+  <div class="grafico-cascada-toggle">
+    <button class="toggle-btn" onclick="toggleGrafico('graficoCascadaWrapper', this)">− Ocultar gráfico cascada</button>
+  </div>
+
+  <!-- Contenedor para gráfico de velas (Candlestick) -->
+  <div id="graficoCascadaWrapper" class="grafico-cascada">
+    <h3 style="text-align: center;">📊 Flujo Acumulado (Cascada)</h3>
+    <div id="graficoCascada" style="height: 400px;"></div>
+  </div>
+
+  <!-- Formulario de entradas -->
   <form onsubmit="guardarEntradas(); return false;">
     <table id="tablaFinanzas">
       <thead>
@@ -58,6 +75,7 @@
     </div>
   </form>
 
+  <!-- Mensaje inferior -->
   <div id="mensaje"></div>
 </body>
 </html>

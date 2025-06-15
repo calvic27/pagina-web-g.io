@@ -41,13 +41,13 @@ h2 {
   min-width: 0; /* 👈 importante para que no se rompa en contenedores flex */
 }
 
-
 .grafico-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
+
 
 .toggle-btn {
   background-color: #007bff;
@@ -64,15 +64,16 @@ h2 {
 }
 
 .grafico-body {
-  height: 300px;
-  transition: height 0.3s ease;
+  max-height: 500px;
+  opacity: 1;
+  padding: 10px 0;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.3s ease;
   overflow: hidden;
 }
-
 .grafico-body.hidden {
-  height: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
 }
 
 table {
@@ -140,4 +141,63 @@ button:hover {
   margin-top: 15px;
   color: green;
   text-align: center;
+}
+.seccion-graficos {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 20px;
+  margin-top: 30px;
+}
+.grafico-box {
+  flex: 1;
+  min-width: 300px;
+  background-color: #ffffff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+.grafico-content {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  overflow: hidden;
+}
+.grafico-content.hidden {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.grafico-box.hidden {
+  display: none;
+}
+
+.graficos-toggle {
+  text-align: right;
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.grafico-cascada {
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: max-height 0.4s ease, opacity 0.4s ease, padding 0.3s ease;
+  overflow: hidden;
+}
+
+.grafico-cascada.hidden {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+}
+
+.grafico-cascada-toggle {
+  text-align: right;
+  margin-top: 30px;
 }

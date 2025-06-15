@@ -1,9 +1,10 @@
 window.addEventListener("DOMContentLoaded", () => {
   console.log("✅ DOM listo");
 
-  // Inicializar Google Charts
-  google.charts.load('current', { packages: ['corechart'] });
-  google.charts.setOnLoadCallback(() => console.log("✅ Google Charts cargado"));
+  google.charts.load("current", { packages: ["corechart"] });
+  google.charts.setOnLoadCallback(() =>
+    console.log("✅ Google Charts cargado")
+  );
 
   const firebaseConfig = {
     apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
@@ -58,7 +59,7 @@ window.addEventListener("DOMContentLoaded", () => {
           actualizarFuente(tipoSelect);
           row.cells[2].querySelector("select").value = data.fuente;
           agregarEventos(row);
-          datos.push({ tipo: data.tipo, fuente: data.fuente, monto: data.monto });
+          datos.push({ tipo: data.tipo, fuente: data.fuente, monto: data.monto, fecha: data.fecha });
         });
 
         generarGraficos(datos);
@@ -139,7 +140,8 @@ window.addEventListener("DOMContentLoaded", () => {
       const tipo = row.cells[1].querySelector("select").value;
       const fuente = row.cells[2].querySelector("select").value;
       const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value.replace(",", "."))) || 0;
-      datos.push({ tipo, fuente, monto });
+      const fecha = row.cells[0].querySelector("input").value;
+      datos.push({ tipo, fuente, monto, fecha });
     });
     return datos;
   }
@@ -163,7 +165,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const ahorro = parseFloat(row.cells[6].querySelector("span").textContent) || 0;
       const ref = db.collection("usuarios").doc(uid).collection("finanzas").doc();
       batch.set(ref, { fecha, tipo, fuente, glosa, monto, porcentaje, ahorro });
-      datos.push({ tipo, fuente, monto });
+      datos.push({ tipo, fuente, monto, fecha });
     });
     batch.commit().then(() => {
       document.getElementById("mensaje").innerText = "✅ Registros guardados con éxito.";
@@ -193,7 +195,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const options = {
         title: titulo,
         pieHole: 0.4,
-        legend: { position: 'bottom' }
+        legend: { position: "bottom" }
       };
 
       const chart = new google.visualization.PieChart(document.getElementById(contenedor));
@@ -202,19 +204,87 @@ window.addEventListener("DOMContentLoaded", () => {
 
     dibujar(ingresos, 'graficoIngresos', 'Distribución de Ingresos');
     dibujar(egresos, 'graficoGastos', 'Distribución de Gastos');
+
+    // === GRÁFICO DE VELAS ===
+    const agrupado = {};
+    datos.forEach(({ tipo, monto, fecha }) => {
+      if (!fecha || isNaN(monto)) return;
+      const f = fecha.split("T")[0];
+      if (!agrupado[f]) agrupado[f] = { ingreso: 0, egreso: 0 };
+      if (tipo === "Ingreso") agrupado[f].ingreso += monto;
+      else if (tipo === "Egreso") agrupado[f].egreso += monto;
+    });
+
+   // Ordenamos los datos por fecha y hora (si hay hora)
+const datosOrdenados = [...datos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+let anteriorCierre = 0;
+const filas = datosOrdenados.map(({ tipo, monto, fecha }, i) => {
+  const apertura = anteriorCierre;
+  const cierre = tipo === "Ingreso" ? apertura + monto : apertura - monto;
+  const min = Math.min(apertura, cierre);
+  const max = Math.max(apertura, cierre);
+  anteriorCierre = cierre;
+
+  const [year, month, day] = fecha.split("-").map(Number);
+  const fechaDate = new Date(year, month - 1, day);
+  fechaDate.setSeconds(i); // evitar solapamiento visual
+
+  return [fechaDate, min, apertura, cierre, max];
+});
+
+
+
+
+    const dataCandle = new google.visualization.DataTable();
+dataCandle.addColumn('date', 'Fecha');
+dataCandle.addColumn('number', 'Mínimo');
+dataCandle.addColumn('number', 'Apertura');
+dataCandle.addColumn('number', 'Cierre');
+dataCandle.addColumn('number', 'Máximo');
+dataCandle.addRows(filas);
+
+
+    const optionsCandle = {
+      title: "Ingresos y Egresos diarios (vela financiera)",
+      legend: "none",
+      bar: { groupWidth: '70%' },
+      candlestick: {
+        fallingColor: { strokeWidth: 0, fill: '#d9534f' },
+        risingColor: { strokeWidth: 0, fill: '#5cb85c' }
+      },
+      hAxis: {
+    title: "Fecha",
+    format: "MMM d", // 👈 esto oculta la hora y zona horaria
+    slantedText: false
+  },
+      vAxis: { title: "Monto" }
+    };
+
+    const chartCandle = new google.visualization.CandlestickChart(document.getElementById("graficoCascada"));
+    chartCandle.draw(dataCandle, optionsCandle);
   }
 
-  function logout() {
-    auth.signOut().then(() => window.location.href = "../index.html");
-  }
-   window.toggleGrafico = function (id, btn) {
+  window.toggleTodosGraficos = function (btn) {
+    const ingresos = document.getElementById("graficoIngresos");
+    const gastos = document.getElementById("graficoGastos");
+    const ocultar = !ingresos.classList.contains("hidden");
+
+    ingresos.classList.toggle("hidden", ocultar);
+    gastos.classList.toggle("hidden", ocultar);
+
+    btn.textContent = ocultar ? "+ Mostrar gráficos" : "− Ocultar gráficos";
+  };
+
+  window.toggleGrafico = function (id, btn) {
     const el = document.getElementById(id);
     el.classList.toggle("hidden");
-    btn.textContent = el.classList.contains("hidden") ? "+" : "−";
+    btn.textContent = el.classList.contains("hidden") ? "+ Mostrar" : "− Ocultar";
   };
-  // 👇 Exponer funciones globales para que funcionen en el HTML
-window.agregarFila = agregarFila;
-window.guardarEntradas = guardarEntradas;
-window.logout = logout;
 
+  window.agregarFila = agregarFila;
+  window.guardarEntradas = guardarEntradas;
+  window.logout = function () {
+    auth.signOut().then(() => window.location.href = "../index.html");
+  };
 });
