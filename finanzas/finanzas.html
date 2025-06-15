@@ -31,13 +31,15 @@
       <tr>
         <td><input type="date" id="fecha" required></td>
         <td>
-          <select id="tipo">
+          <select id="tipo" onchange="actualizarGlosas()">
             <option value="Ingreso">Ingreso</option>
             <option value="Egreso">Egreso</option>
           </select>
         </td>
         <td><input type="text" id="fuente" required></td>
-        <td><input type="text" id="glosa" required></td>
+        <td>
+          <select id="glosa" required></select>
+        </td>
         <td><input type="number" id="monto" step="0.01" required></td>
         <td><input type="number" id="porcentaje" value="10" step="0.01"></td>
         <td><span id="ahorro">0.00</span></td>
@@ -64,16 +66,30 @@
     const db = firebase.firestore();
     let uid = null;
 
-    // Verifica autenticación
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        uid = user.uid;
-      } else {
-        window.location.href = "index.html";
-      }
-    });
+    const glosasIngreso = ["sueldo", "negocio", "ventas", "otros"];
+    const glosasEgreso = [
+      "Gastos de hogar / familia",
+      "Categoria de gastos de salud",
+      "Gastos de alimentacion",
+      "Gastos de estilo de vida",
+      "Gastos de inversion",
+      "Gasto otros"
+    ];
 
-    // Cálculo en tiempo real
+    function actualizarGlosas() {
+      const tipo = document.getElementById("tipo").value;
+      const glosaSelect = document.getElementById("glosa");
+      const opciones = tipo === "Ingreso" ? glosasIngreso : glosasEgreso;
+
+      glosaSelect.innerHTML = "";
+      opciones.forEach(op => {
+        const option = document.createElement("option");
+        option.value = op;
+        option.textContent = op;
+        glosaSelect.appendChild(option);
+      });
+    }
+
     document.getElementById("monto").addEventListener("input", actualizarAhorro);
     document.getElementById("porcentaje").addEventListener("input", actualizarAhorro);
 
@@ -84,7 +100,15 @@
       document.getElementById("ahorro").textContent = ahorro;
     }
 
-    // Guarda entrada en Firestore
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        uid = user.uid;
+        actualizarGlosas();
+      } else {
+        window.location.href = "../index.html";
+      }
+    });
+
     function guardarEntrada() {
       const data = {
         fecha: document.getElementById("fecha").value,
@@ -99,15 +123,13 @@
       db.collection("usuarios").doc(uid).collection("finanzas").add(data).then(() => {
         document.getElementById("mensaje").innerText = "✅ Guardado correctamente";
         document.getElementById("monto").value = "";
-        document.getElementById("glosa").value = "";
         document.getElementById("fuente").value = "";
         document.getElementById("ahorro").textContent = "0.00";
       });
     }
 
-    // Logout
     function logout() {
-      auth.signOut().then(() => window.location.href = "index.html");
+      auth.signOut().then(() => window.location.href = "../index.html");
     }
   </script>
 </body>
