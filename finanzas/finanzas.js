@@ -207,8 +207,9 @@ window.addEventListener("DOMContentLoaded", () => {
   function logout() {
     auth.signOut().then(() => window.location.href = "../index.html");
   }
-});
-// 👇 Exponer funciones globales para que funcionen en el HTML
+  // 👇 Exponer funciones globales para que funcionen en el HTML
 window.agregarFila = agregarFila;
 window.guardarEntradas = guardarEntradas;
 window.logout = logout;
+
+});
