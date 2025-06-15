@@ -15,15 +15,16 @@
 
 <script>
   // Copia aquí tu config de Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
+const firebaseConfig = {
+  apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
   authDomain: "drg-app-a654e.firebaseapp.com",
   projectId: "drg-app-a654e",
-  storageBucket: "drg-app-a654e.firebasestorage.app",
+  storageBucket: "drg-app-a654e.appspot.com", // ✅ corregido
   messagingSenderId: "853577402845",
   appId: "1:853577402845:web:9c7ae221db8bf986cc0e34",
   measurementId: "G-PWZF6M6NKZ"
-  };
+};
+
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
