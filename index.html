@@ -3,7 +3,7 @@
 <head>
   <title>Inicio - Mi Finanzas App</title>
   <meta charset="UTF-8">
-  <!-- Firebase -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -11,10 +11,10 @@
 <body>
   <h2 id="titulo">Bienvenido a tu app de finanzas</h2>
 
-  <!-- Botón de login -->
+  <!-- Botón para iniciar sesión -->
   <button id="loginBtn" onclick="login()">Iniciar sesión con Google</button>
 
-  <!-- Botón que aparece luego de login -->
+  <!-- Botón para ir a finanzas (solo si está logueado) -->
   <button id="finanzasBtn" style="display: none;" onclick="window.location.href='finanzas/finanzas.html'">
     Ir a Finanzas
   </button>
@@ -33,6 +33,7 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
+    // Verifica si el usuario ya está autenticado
     auth.onAuthStateChanged(user => {
       if (user) {
         document.getElementById("titulo").innerText = `¡Hola, ${user.displayName}!`;
@@ -41,6 +42,7 @@
       }
     });
 
+    // Login con Google
     function login() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
