@@ -6,12 +6,15 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     input, select { width: 100%; box-sizing: border-box; }
     #mensaje { margin-top: 10px; color: green; }
     button { margin: 10px 0; }
+    .grafico-container { width: 45%; display: inline-block; vertical-align: top; margin: 20px; }
+    .grafico-container h3 { text-align: center; }
   </style>
 </head>
 <body>
@@ -38,6 +41,15 @@
   </form>
 
   <div id="mensaje"></div>
+
+  <div class="grafico-container">
+    <h3>📈 Distribución de Ingresos por Fuente</h3>
+    <canvas id="graficoIngresos"></canvas>
+  </div>
+  <div class="grafico-container">
+    <h3>📉 Distribución de Gastos por Fuente</h3>
+    <canvas id="graficoGastos"></canvas>
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -70,12 +82,11 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         uid = user.uid;
-        agregarFila(); // Si está logueado, añade primera fila
+        agregarFila();
       } else {
-        // También permite uso en modo demo
         uid = "modo_demo";
         document.getElementById("mensaje").innerText = "⚠️ Modo demo activo. Los datos no se guardarán.";
-        agregarFila(); // Permite probar sin login
+        agregarFila();
       }
     });
 
@@ -101,6 +112,7 @@
       const tipoSelect = row.cells[1].querySelector("select");
       tipoSelect.addEventListener("change", function () {
         actualizarFuentesYGlosas(this);
+        calcularAhorro(row); // recalcula si cambia el tipo
       });
 
       actualizarFuentesYGlosas(tipoSelect);
@@ -136,47 +148,90 @@
     }
 
     function agregarEventos(row) {
-      const montoInput = row.cells[4].querySelector("input");
-      const porcentajeInput = row.cells[5].querySelector("input");
-      [montoInput, porcentajeInput].forEach(input =>
-        input.addEventListener("input", () => calcularAhorro(row))
-      );
+      const inputs = row.querySelectorAll("input, select");
+      inputs.forEach(input => input.addEventListener("input", () => calcularAhorro(row)));
     }
 
     function calcularAhorro(row) {
-      const monto = parseFloat(row.cells[4].querySelector("input").value) || 0;
+      const tipo = row.cells[1].querySelector("select").value;
+      const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value)) || 0;
       const porcentaje = parseFloat(row.cells[5].querySelector("input").value) || 0;
-      const ahorro = (monto * porcentaje / 100).toFixed(2);
+
+      row.cells[4].querySelector("input").value = monto.toFixed(2); // siempre positivo
+
+      const ahorro = tipo === "Ingreso" ? (monto * porcentaje / 100).toFixed(2) : "0.00";
       row.cells[6].querySelector("span").textContent = ahorro;
     }
 
     function guardarEntradas() {
       const filas = document.querySelectorAll("#cuerpoTabla tr");
       if (uid === "modo_demo") {
-        document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo. Inicia sesión.";
+        document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo.";
         return;
       }
 
       const batch = db.batch();
+      const datos = [];
 
       filas.forEach(row => {
         const fecha = row.cells[0].querySelector("input").value;
         const tipo = row.cells[1].querySelector("select").value;
         const fuente = row.cells[2].querySelector("select").value;
         const glosa = row.cells[3].querySelector("select").value;
-        const monto = parseFloat(row.cells[4].querySelector("input").value);
+        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value));
         const porcentaje = parseFloat(row.cells[5].querySelector("input").value);
         const ahorro = parseFloat(row.cells[6].querySelector("span").textContent);
 
         const ref = db.collection("usuarios").doc(uid).collection("finanzas").doc();
         batch.set(ref, { fecha, tipo, fuente, glosa, monto, porcentaje, ahorro });
+
+        datos.push({ tipo, fuente, monto });
       });
 
       batch.commit().then(() => {
         document.getElementById("mensaje").innerText = "✅ Registros guardados con éxito.";
+        generarGraficos(datos);
       }).catch(err => {
         document.getElementById("mensaje").innerText = "❌ Error al guardar: " + err.message;
       });
+    }
+
+    function generarGraficos(datos) {
+      const ingresos = {};
+      const egresos = {};
+
+      datos.forEach(({ tipo, fuente, monto }) => {
+        if (tipo === "Ingreso") {
+          ingresos[fuente] = (ingresos[fuente] || 0) + monto;
+        } else {
+          egresos[fuente] = (egresos[fuente] || 0) + monto;
+        }
+      });
+
+      const crearGrafico = (ctxId, dataMap, titulo) => {
+        const ctx = document.getElementById(ctxId).getContext("2d");
+        if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
+
+        const labels = Object.keys(dataMap);
+        const data = Object.values(dataMap);
+        new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: labels,
+            datasets: [{ data }]
+          },
+          options: {
+            plugins: {
+              title: {
+                display: false
+              }
+            }
+          }
+        });
+      };
+
+      crearGrafico("graficoIngresos", ingresos);
+      crearGrafico("graficoGastos", egresos);
     }
 
     function logout() {
