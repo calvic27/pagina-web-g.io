@@ -173,7 +173,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 
     const dibujar = (mapa, contenedor, titulo) => {
-      const dataArray = [['Fuente', 'Monto']];
+      const dataArray = [["Fuente", "Monto"]];
       for (const key in mapa) {
         dataArray.push([key, mapa[key]]);
       }
