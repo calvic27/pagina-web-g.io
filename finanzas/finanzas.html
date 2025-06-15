@@ -3,10 +3,15 @@
 <head>
   <title>Mis Finanzas</title>
   <meta charset="UTF-8">
+  
+  <!-- Chart.js debe cargarse antes del script que lo usa -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.js"></script>
+
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.js"></script>
+
   <style>
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
@@ -51,7 +56,10 @@
     <canvas id="graficoGastos"></canvas>
   </div>
 
+  <!-- SCRIPT PRINCIPAL -->
   <script>
+    console.log("✅ Chart.js cargado:", typeof Chart); // Verifica carga
+
     const firebaseConfig = {
       apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
       authDomain: "drg-app-a654e.firebaseapp.com",
@@ -76,6 +84,7 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         uid = user.uid;
+        console.log("🆔 Usuario autenticado:", uid);
         cargarEntradasGuardadas();
       } else {
         uid = "modo_demo";
@@ -122,7 +131,7 @@
           generarGraficos(datos);
         })
         .catch(err => {
-          console.error("Error al cargar datos:", err);
+          console.error("🔥 Error real al cargar datos:", err);
           document.getElementById("mensaje").innerText = "❌ Error al cargar datos.";
         });
     }
@@ -224,9 +233,9 @@
         const tipo = row.cells[1].querySelector("select").value;
         const fuente = row.cells[2].querySelector("select").value;
         const glosa = row.cells[3].querySelector("input").value;
-        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value.replace(",", ".")));
-        const porcentaje = parseFloat(row.cells[5].querySelector("input").value);
-        const ahorro = parseFloat(row.cells[6].querySelector("span").textContent);
+        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value.replace(",", "."))) || 0;
+        const porcentaje = parseFloat(row.cells[5].querySelector("input").value) || 0;
+        const ahorro = parseFloat(row.cells[6].querySelector("span").textContent) || 0;
 
         const ref = db.collection("usuarios").doc(uid).collection("finanzas").doc();
         batch.set(ref, { fecha, tipo, fuente, glosa, monto, porcentaje, ahorro });
@@ -254,8 +263,6 @@
         }
       });
 
-      if (Object.keys(ingresos).length === 0 && Object.keys(egresos).length === 0) return;
-
       const graficar = (ctxId, dataMap, oldChartRef) => {
         const canvas = document.getElementById(ctxId);
         if (!canvas) return;
@@ -264,14 +271,20 @@
 
         if (oldChartRef) oldChartRef.destroy();
 
+        const hayDatos = Object.keys(dataMap).length > 0;
+        const labels = hayDatos ? Object.keys(dataMap) : ["Sin datos"];
+        const values = hayDatos ? Object.values(dataMap) : [1];
+        const colores = hayDatos
+          ? labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`)
+          : ["#ddd"];
+
         return new Chart(ctx, {
           type: 'pie',
           data: {
-            labels: Object.keys(dataMap),
+            labels,
             datasets: [{
-              data: Object.values(dataMap),
-              backgroundColor: Object.keys(dataMap).map(() =>
-                `hsl(${Math.random() * 360}, 70%, 70%)`)
+              data: values,
+              backgroundColor: colores
             }]
           },
           options: {

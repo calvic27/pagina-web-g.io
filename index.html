@@ -1,65 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Mis Finanzas</title>
+  <title>Inicio - Mi Finanzas App</title>
   <meta charset="UTF-8">
-  
-  <!-- Chart.js debe cargarse antes del script que lo usa -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.js"></script>
-
-  <!-- Firebase SDKs -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-
-  <style>
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    input, select { width: 100%; box-sizing: border-box; }
-    #mensaje { margin-top: 10px; color: green; }
-    button { margin: 10px 0; }
-    .grafico-container { width: 45%; display: inline-block; vertical-align: top; margin: 20px; }
-    .grafico-container h3 { text-align: center; }
-  </style>
 </head>
 <body>
-  <h2>Mis Finanzas</h2>
-  <button onclick="logout()">Cerrar sesión</button>
+  <h2 id="titulo">Bienvenido a tu app de finanzas</h2>
 
-  <form onsubmit="guardarEntradas(); return false;">
-    <table id="tablaFinanzas">
-      <thead>
-        <tr>
-          <th>Fecha</th>
-          <th>Tipo</th>
-          <th>Fuente</th>
-          <th>Glosa</th>
-          <th>Monto</th>
-          <th>% Ahorro</th>
-          <th>Ahorro Neto</th>
-        </tr>
-      </thead>
-      <tbody id="cuerpoTabla"></tbody>
-    </table>
-    <button type="button" onclick="agregarFila()">➕ Agregar Ingreso o Gasto</button>
-    <button type="submit">💾 Guardar Todo</button>
-  </form>
+  <!-- Botón para iniciar sesión -->
+  <button id="loginBtn" onclick="login()">Iniciar sesión con Google</button>
 
-  <div id="mensaje"></div>
+  <!-- Botón para ir a finanzas (solo si está logueado) -->
+  <button id="finanzasBtn" style="display: none;" onclick="window.location.href='finanzas/finanzas.html'">
+    Ir a Finanzas
+  </button>
 
-  <div class="grafico-container">
-    <h3>📈 Distribución de Ingresos por Fuente</h3>
-    <canvas id="graficoIngresos"></canvas>
-  </div>
-  <div class="grafico-container">
-    <h3>📉 Distribución de Gastos por Fuente</h3>
-    <canvas id="graficoGastos"></canvas>
-  </div>
-
-  <!-- SCRIPT PRINCIPAL -->
   <script>
-    console.log("✅ Chart.js cargado:", typeof Chart); // Verifica carga
-
     const firebaseConfig = {
       apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
       authDomain: "drg-app-a654e.firebaseapp.com",
@@ -72,237 +32,30 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
-    let uid = null;
 
-    let chartIngresos = null;
-    let chartGastos = null;
-
-    const fuentesIngreso = ["Trabajo", "Negocio", "Inversiones", "Otros"];
-    const fuentesEgreso = ["Hogar", "Salud", "Alimentación", "Estilo de vida", "Inversión", "Otros"];
-
+    // Verifica si el usuario ya está autenticado
     auth.onAuthStateChanged(user => {
       if (user) {
-        uid = user.uid;
-        console.log("🆔 Usuario autenticado:", uid);
-        cargarEntradasGuardadas();
-      } else {
-        uid = "modo_demo";
-        document.getElementById("mensaje").innerText = "⚠️ Modo demo activo. Los datos no se guardarán.";
-        agregarFila();
+        document.getElementById("titulo").innerText = `¡Hola, ${user.displayName}!`;
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("finanzasBtn").style.display = "inline-block";
       }
     });
 
-    function cargarEntradasGuardadas() {
-      db.collection("usuarios").doc(uid).collection("finanzas").get()
-        .then(snapshot => {
-          const datos = [];
-          const tbody = document.getElementById("cuerpoTabla");
-          tbody.innerHTML = "";
-
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td><input type="date" value="${data.fecha}" required></td>
-              <td>
-                <select required>
-                  <option value="Ingreso" ${data.tipo === "Ingreso" ? "selected" : ""}>Ingreso</option>
-                  <option value="Egreso" ${data.tipo === "Egreso" ? "selected" : ""}>Egreso</option>
-                </select>
-              </td>
-              <td><select required></select></td>
-              <td><input type="text" value="${data.glosa}" required></td>
-              <td><input type="number" value="${data.monto}" step="0.01" required></td>
-              <td><input type="number" value="${data.porcentaje}" step="0.01"></td>
-              <td><span>${data.ahorro.toFixed(2)}</span></td>
-            `;
-            tbody.appendChild(row);
-
-            const tipoSelect = row.cells[1].querySelector("select");
-            actualizarFuente(tipoSelect);
-            row.cells[2].querySelector("select").value = data.fuente;
-
-            agregarEventos(row);
-
-            datos.push({ tipo: data.tipo, fuente: data.fuente, monto: data.monto });
-          });
-
-          generarGraficos(datos);
+    // Login con Google
+    function login() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(result => {
+          const user = result.user;
+          document.getElementById("titulo").innerText = `¡Hola, ${user.displayName}!`;
+          document.getElementById("loginBtn").style.display = "none";
+          document.getElementById("finanzasBtn").style.display = "inline-block";
         })
-        .catch(err => {
-          console.error("🔥 Error real al cargar datos:", err);
-          document.getElementById("mensaje").innerText = "❌ Error al cargar datos.";
+        .catch(error => {
+          console.error("Error en login:", error);
+          alert("Hubo un error al iniciar sesión. Revisa la consola.");
         });
-    }
-
-    function agregarFila() {
-      const tbody = document.getElementById("cuerpoTabla");
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="date" required></td>
-        <td>
-          <select required>
-            <option value="Ingreso">Ingreso</option>
-            <option value="Egreso">Egreso</option>
-          </select>
-        </td>
-        <td><select required></select></td>
-        <td><input type="text" placeholder="Escribe glosa" required></td>
-        <td><input type="number" step="0.01" required></td>
-        <td><input type="number" value="10" step="0.01"></td>
-        <td><span>0.00</span></td>
-      `;
-      tbody.appendChild(row);
-
-      const tipoSelect = row.cells[1].querySelector("select");
-      tipoSelect.addEventListener("change", function () {
-        actualizarFuente(this);
-        calcularAhorro(row);
-      });
-
-      actualizarFuente(tipoSelect);
-      agregarEventos(row);
-    }
-
-    function actualizarFuente(select) {
-      const row = select.closest("tr");
-      const tipo = select.value;
-      const fuentes = tipo === "Ingreso" ? fuentesIngreso : fuentesEgreso;
-      const fuenteSelect = row.cells[2].querySelector("select");
-
-      fuenteSelect.innerHTML = "";
-      fuentes.forEach(f => {
-        const opt = document.createElement("option");
-        opt.value = f;
-        opt.textContent = f;
-        fuenteSelect.appendChild(opt);
-      });
-    }
-
-    function agregarEventos(row) {
-      const inputs = row.querySelectorAll("input, select");
-      inputs.forEach(input => input.addEventListener("input", () => {
-        calcularAhorro(row);
-        generarGraficos(obtenerDatosTabla());
-      }));
-    }
-
-    function calcularAhorro(row) {
-      const tipo = row.cells[1].querySelector("select").value;
-      const montoInput = row.cells[4].querySelector("input");
-      const porcentajeInput = row.cells[5].querySelector("input");
-
-      const montoStr = montoInput.value.replace(",", ".");
-      const monto = Math.abs(parseFloat(montoStr)) || 0;
-      montoInput.value = monto.toFixed(2);
-
-      const porcentaje = parseFloat(porcentajeInput.value) || 0;
-      const ahorro = (tipo === "Ingreso") ? (monto * porcentaje / 100).toFixed(2) : "0.00";
-      row.cells[6].querySelector("span").textContent = ahorro;
-    }
-
-    function obtenerDatosTabla() {
-      const filas = document.querySelectorAll("#cuerpoTabla tr");
-      const datos = [];
-
-      filas.forEach(row => {
-        const tipo = row.cells[1].querySelector("select").value;
-        const fuente = row.cells[2].querySelector("select").value;
-        const montoStr = row.cells[4].querySelector("input").value.replace(",", ".");
-        const monto = Math.abs(parseFloat(montoStr)) || 0;
-        datos.push({ tipo, fuente, monto });
-      });
-
-      return datos;
-    }
-
-    function guardarEntradas() {
-      const filas = document.querySelectorAll("#cuerpoTabla tr");
-      if (uid === "modo_demo") {
-        document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo.";
-        generarGraficos(obtenerDatosTabla());
-        return;
-      }
-
-      const batch = db.batch();
-      const datos = [];
-
-      filas.forEach(row => {
-        const fecha = row.cells[0].querySelector("input").value;
-        const tipo = row.cells[1].querySelector("select").value;
-        const fuente = row.cells[2].querySelector("select").value;
-        const glosa = row.cells[3].querySelector("input").value;
-        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value.replace(",", "."))) || 0;
-        const porcentaje = parseFloat(row.cells[5].querySelector("input").value) || 0;
-        const ahorro = parseFloat(row.cells[6].querySelector("span").textContent) || 0;
-
-        const ref = db.collection("usuarios").doc(uid).collection("finanzas").doc();
-        batch.set(ref, { fecha, tipo, fuente, glosa, monto, porcentaje, ahorro });
-
-        datos.push({ tipo, fuente, monto });
-      });
-
-      batch.commit().then(() => {
-        document.getElementById("mensaje").innerText = "✅ Registros guardados con éxito.";
-        generarGraficos(datos);
-      }).catch(err => {
-        document.getElementById("mensaje").innerText = "❌ Error al guardar: " + err.message;
-      });
-    }
-
-    function generarGraficos(datos) {
-      const ingresos = {}, egresos = {};
-
-      datos.forEach(({ tipo, fuente, monto }) => {
-        if (!fuente || isNaN(monto)) return;
-        if (tipo === "Ingreso") {
-          ingresos[fuente] = (ingresos[fuente] || 0) + monto;
-        } else if (tipo === "Egreso") {
-          egresos[fuente] = (egresos[fuente] || 0) + monto;
-        }
-      });
-
-      const graficar = (ctxId, dataMap, oldChartRef) => {
-        const canvas = document.getElementById(ctxId);
-        if (!canvas) return;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        if (oldChartRef) oldChartRef.destroy();
-
-        const hayDatos = Object.keys(dataMap).length > 0;
-        const labels = hayDatos ? Object.keys(dataMap) : ["Sin datos"];
-        const values = hayDatos ? Object.values(dataMap) : [1];
-        const colores = hayDatos
-          ? labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`)
-          : ["#ddd"];
-
-        return new Chart(ctx, {
-          type: 'pie',
-          data: {
-            labels,
-            datasets: [{
-              data: values,
-              backgroundColor: colores
-            }]
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'bottom' },
-              title: { display: false }
-            }
-          }
-        });
-      };
-
-      chartIngresos = graficar("graficoIngresos", ingresos, chartIngresos);
-      chartGastos = graficar("graficoGastos", egresos, chartGastos);
-    }
-
-    function logout() {
-      auth.signOut().then(() => window.location.href = "../index.html");
     }
   </script>
 </body>
