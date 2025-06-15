@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Mi Finanzas App</title>
+  <title>Panel de Finanzas</title>
   <meta charset="UTF-8">
-  <!-- Firebase compat scripts -->
+  <!-- Firebase compat -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -12,12 +12,11 @@
 </head>
 
 <body>
-  <h1 style="color: red;">Esto sí se ve</h1>
-  <h2>Bienvenido, <span id="userName">Invitado</span></h2>
+  <h2>Iniciar sesión para acceder a tu panel</h2>
   <button onclick="login()">Iniciar sesión con Google</button>
-  <canvas id="grafico" width="400" height="400" style="margin-top: 20px;"></canvas>
 
   <script>
+    // ✅ Tu configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
       authDomain: "drg-app-a654e.firebaseapp.com",
@@ -32,18 +31,49 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
+    // ⏳ Detecta usuario logueado (también si recarga la página)
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        cargarPanelUsuario(user.uid, user.displayName);
+      }
+    });
+
     function login() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then(result => {
           const user = result.user;
-          document.getElementById("userName").textContent = user.displayName;
-          cargarDatos(user.uid);
+          cargarPanelUsuario(user.uid, user.displayName);
         })
-        .catch(err => {
-          console.error("Error al iniciar sesión:", err);
-          alert("Ocurrió un error al iniciar sesión. Revisa la consola.");
+        .catch(error => {
+          console.error("Error en login:", error);
+          alert("Fallo en login. Revisa consola.");
         });
+    }
+
+    function cargarPanelUsuario(uid, nombre) {
+      document.body.innerHTML = `
+        <h2>Bienvenido, ${nombre}</h2>
+        <form onsubmit="guardarCategoria('${uid}'); return false;">
+          <input type="text" id="categoria" placeholder="Categoría" required />
+          <input type="number" id="monto" placeholder="Monto" required />
+          <button type="submit">Guardar</button>
+        </form>
+        <canvas id="grafico" width="400" height="400" style="margin-top:20px;"></canvas>
+        <button onclick="logout()">Cerrar sesión</button>
+      `;
+      cargarDatos(uid);
+    }
+
+    function guardarCategoria(uid) {
+      const categoria = document.getElementById("categoria").value;
+      const monto = parseFloat(document.getElementById("monto").value);
+      db.collection("usuarios").doc(uid).collection("categorias").doc(categoria).set({
+        monto: monto
+      }).then(() => {
+        alert("Guardado correctamente");
+        cargarDatos(uid);
+      });
     }
 
     function cargarDatos(uid) {
@@ -52,9 +82,6 @@
           const datos = [];
           snapshot.forEach(doc => datos.push({ nombre: doc.id, monto: doc.data().monto }));
           dibujarGrafico(datos);
-        })
-        .catch(err => {
-          console.error("Error al cargar datos:", err);
         });
     }
 
@@ -73,6 +100,10 @@
           }]
         }
       });
+    }
+
+    function logout() {
+      auth.signOut().then(() => location.reload());
     }
   </script>
 </body>
