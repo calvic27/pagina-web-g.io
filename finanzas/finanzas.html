@@ -141,7 +141,7 @@
       const montoInput = row.cells[4].querySelector("input");
       const porcentajeInput = row.cells[5].querySelector("input");
 
-      const montoStr = row.cells[4].querySelector("input").value.replace(",", ".");
+      const montoStr = montoInput.value.replace(",", ".");
       const monto = Math.abs(parseFloat(montoStr)) || 0;
       montoInput.value = monto.toFixed(2);
 
@@ -157,7 +157,8 @@
       filas.forEach(row => {
         const tipo = row.cells[1].querySelector("select").value;
         const fuente = row.cells[2].querySelector("select").value;
-        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value)) || 0;
+        const montoStr = row.cells[4].querySelector("input").value.replace(",", ".");
+        const monto = Math.abs(parseFloat(montoStr)) || 0;
         datos.push({ tipo, fuente, monto });
       });
 
@@ -168,6 +169,7 @@
       const filas = document.querySelectorAll("#cuerpoTabla tr");
       if (uid === "modo_demo") {
         document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo.";
+        generarGraficos(obtenerDatosTabla()); // útil en modo demo
         return;
       }
 
@@ -179,7 +181,7 @@
         const tipo = row.cells[1].querySelector("select").value;
         const fuente = row.cells[2].querySelector("select").value;
         const glosa = row.cells[3].querySelector("input").value;
-        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value));
+        const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value.replace(",", ".")));
         const porcentaje = parseFloat(row.cells[5].querySelector("input").value);
         const ahorro = parseFloat(row.cells[6].querySelector("span").textContent);
 
@@ -201,17 +203,19 @@
       const ingresos = {}, egresos = {};
 
       datos.forEach(({ tipo, fuente, monto }) => {
+        if (!fuente || isNaN(monto)) return;
         if (tipo === "Ingreso") {
           ingresos[fuente] = (ingresos[fuente] || 0) + monto;
-        } else {
+        } else if (tipo === "Egreso") {
           egresos[fuente] = (egresos[fuente] || 0) + monto;
         }
       });
 
+      if (Object.keys(ingresos).length === 0 && Object.keys(egresos).length === 0) return;
+
       const graficar = (ctxId, dataMap, oldChartRef) => {
         const canvas = document.getElementById(ctxId);
         if (!canvas) return;
-
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
@@ -222,10 +226,18 @@
           data: {
             labels: Object.keys(dataMap),
             datasets: [{
-              data: Object.values(dataMap)
+              data: Object.values(dataMap),
+              backgroundColor: Object.keys(dataMap).map(() =>
+                `hsl(${Math.random() * 360}, 70%, 70%)`)
             }]
           },
-          options: { responsive: true }
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'bottom' },
+              title: { display: false }
+            }
+          }
         });
       };
 
