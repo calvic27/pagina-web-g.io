@@ -7,16 +7,18 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-  <h2>Iniciar sesión para acceder a tu panel</h2>
-  <button onclick="login()">Iniciar sesión con Google</button>
+  <h2 id="titulo">Iniciar sesión para acceder a tu panel</h2>
+
+  <!-- Botones -->
+  <button id="loginBtn" onclick="login()">Iniciar sesión con Google</button>
+  <button id="finanzasBtn" style="display:none;" onclick="window.location.href='finanzas.html'">
+    Ir a Finanzas
+  </button>
 
   <script>
-    // ✅ Tu configuración Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
       authDomain: "drg-app-a654e.firebaseapp.com",
@@ -29,81 +31,30 @@
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
 
-    // ⏳ Detecta usuario logueado (también si recarga la página)
+    // Detectar si el usuario ya está autenticado
     auth.onAuthStateChanged(user => {
       if (user) {
-        cargarPanelUsuario(user.uid, user.displayName);
+        document.getElementById("titulo").innerText = "Bienvenido, " + user.displayName;
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("finanzasBtn").style.display = "inline-block";
       }
     });
 
+    // Función de login
     function login() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then(result => {
           const user = result.user;
-          cargarPanelUsuario(user.uid, user.displayName);
+          document.getElementById("titulo").innerText = "Bienvenido, " + user.displayName;
+          document.getElementById("loginBtn").style.display = "none";
+          document.getElementById("finanzasBtn").style.display = "inline-block";
         })
         .catch(error => {
           console.error("Error en login:", error);
-          alert("Fallo en login. Revisa consola.");
+          alert("Fallo en login. Revisa la consola.");
         });
-    }
-
-    function cargarPanelUsuario(uid, nombre) {
-      document.body.innerHTML = `
-        <h2>Bienvenido, ${nombre}</h2>
-        <form onsubmit="guardarCategoria('${uid}'); return false;">
-          <input type="text" id="categoria" placeholder="Categoría" required />
-          <input type="number" id="monto" placeholder="Monto" required />
-          <button type="submit">Guardar</button>
-        </form>
-        <canvas id="grafico" width="400" height="400" style="margin-top:20px;"></canvas>
-        <button onclick="logout()">Cerrar sesión</button>
-      `;
-      cargarDatos(uid);
-    }
-
-    function guardarCategoria(uid) {
-      const categoria = document.getElementById("categoria").value;
-      const monto = parseFloat(document.getElementById("monto").value);
-      db.collection("usuarios").doc(uid).collection("categorias").doc(categoria).set({
-        monto: monto
-      }).then(() => {
-        alert("Guardado correctamente");
-        cargarDatos(uid);
-      });
-    }
-
-    function cargarDatos(uid) {
-      db.collection("usuarios").doc(uid).collection("categorias").get()
-        .then(snapshot => {
-          const datos = [];
-          snapshot.forEach(doc => datos.push({ nombre: doc.id, monto: doc.data().monto }));
-          dibujarGrafico(datos);
-        });
-    }
-
-    function dibujarGrafico(data) {
-      const ctx = document.getElementById('grafico').getContext('2d');
-      const labels = data.map(c => c.nombre);
-      const valores = data.map(c => c.monto);
-
-      new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: valores,
-            backgroundColor: ['green', 'red', 'orange', 'blue', 'purple']
-          }]
-        }
-      });
-    }
-
-    function logout() {
-      auth.signOut().then(() => location.reload());
     }
   </script>
 </body>
