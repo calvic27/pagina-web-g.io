@@ -141,7 +141,8 @@
       const montoInput = row.cells[4].querySelector("input");
       const porcentajeInput = row.cells[5].querySelector("input");
 
-      const monto = Math.abs(parseFloat(montoInput.value)) || 0;
+      const montoStr = row.cells[4].querySelector("input").value.replace(",", ".");
+      const monto = Math.abs(parseFloat(montoStr)) || 0;
       montoInput.value = monto.toFixed(2);
 
       const porcentaje = parseFloat(porcentajeInput.value) || 0;
