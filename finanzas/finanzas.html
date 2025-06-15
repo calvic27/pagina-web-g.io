@@ -70,9 +70,12 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         uid = user.uid;
-        agregarFila(); // Añadir la primera fila al cargar
+        agregarFila(); // Si está logueado, añade primera fila
       } else {
-        window.location.href = "../index.html";
+        // También permite uso en modo demo
+        uid = "modo_demo";
+        document.getElementById("mensaje").innerText = "⚠️ Modo demo activo. Los datos no se guardarán.";
+        agregarFila(); // Permite probar sin login
       }
     });
 
@@ -149,6 +152,11 @@
 
     function guardarEntradas() {
       const filas = document.querySelectorAll("#cuerpoTabla tr");
+      if (uid === "modo_demo") {
+        document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo. Inicia sesión.";
+        return;
+      }
+
       const batch = db.batch();
 
       filas.forEach(row => {
@@ -166,6 +174,8 @@
 
       batch.commit().then(() => {
         document.getElementById("mensaje").innerText = "✅ Registros guardados con éxito.";
+      }).catch(err => {
+        document.getElementById("mensaje").innerText = "❌ Error al guardar: " + err.message;
       });
     }
 
