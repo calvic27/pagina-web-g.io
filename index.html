@@ -1,30 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Mi Finanzas App</title>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<!-- Primero los scripts de Firebase compat -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-
-<h2>Bienvenido <span id="userName"></span></h2>
-<button onclick="login()">Iniciar sesión con Google</button>
-<canvas id="grafico" width="400" height="400"></canvas>
-
+<!-- Luego tu propio script que usa firebase -->
 <script>
-  // Copia aquí tu config de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
-  authDomain: "drg-app-a654e.firebaseapp.com",
-  projectId: "drg-app-a654e",
-  storageBucket: "drg-app-a654e.appspot.com", // ✅ corregido
-  messagingSenderId: "853577402845",
-  appId: "1:853577402845:web:9c7ae221db8bf986cc0e34",
-  measurementId: "G-PWZF6M6NKZ"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
+    authDomain: "drg-app-a654e.firebaseapp.com",
+    projectId: "drg-app-a654e",
+    storageBucket: "drg-app-a654e.appspot.com", // corregido
+    messagingSenderId: "853577402845",
+    appId: "1:853577402845:web:9c7ae221db8bf986cc0e34",
+    measurementId: "G-PWZF6M6NKZ"
+  };
 
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
@@ -36,6 +26,8 @@ const firebaseConfig = {
       const user = result.user;
       document.getElementById("userName").textContent = user.displayName;
       cargarDatos(user.uid);
+    }).catch(err => {
+      console.error("Error al iniciar sesión:", err);
     });
   }
 
@@ -63,5 +55,3 @@ const firebaseConfig = {
     });
   }
 </script>
-</body>
-</html>
