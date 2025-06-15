@@ -1,5 +1,9 @@
 window.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ DOM listo. Chart:", typeof Chart);
+  console.log("✅ DOM listo");
+
+  // Inicializar Google Charts
+  google.charts.load('current', { packages: ['corechart'] });
+  google.charts.setOnLoadCallback(() => console.log("✅ Google Charts cargado"));
 
   const firebaseConfig = {
     apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
@@ -15,9 +19,6 @@ window.addEventListener("DOMContentLoaded", () => {
   const auth = firebase.auth();
   const db = firebase.firestore();
   let uid = null;
-
-  let chartIngresos = null;
-  let chartGastos = null;
 
   const fuentesIngreso = ["Trabajo", "Negocio", "Inversiones", "Otros"];
   const fuentesEgreso = ["Hogar", "Salud", "Alimentación", "Estilo de vida", "Inversión", "Otros"];
@@ -164,33 +165,33 @@ window.addEventListener("DOMContentLoaded", () => {
 
   function generarGraficos(datos) {
     const ingresos = {}, egresos = {};
+
     datos.forEach(({ tipo, fuente, monto }) => {
       if (!fuente || isNaN(monto)) return;
       if (tipo === "Ingreso") ingresos[fuente] = (ingresos[fuente] || 0) + monto;
       else if (tipo === "Egreso") egresos[fuente] = (egresos[fuente] || 0) + monto;
     });
-    const graficar = (ctxId, dataMap, oldChartRef) => {
-      const canvas = document.getElementById(ctxId);
-      const ctx = canvas.getContext("2d");
-      if (oldChartRef) oldChartRef.destroy();
-      const hayDatos = Object.keys(dataMap).length > 0;
-      const labels = hayDatos ? Object.keys(dataMap) : ["Sin datos"];
-      const values = hayDatos ? Object.values(dataMap) : [1];
-      const colores = hayDatos ? labels.map(() => `hsl(${Math.random() * 360}, 70%, 70%)`) : ["#ddd"];
-      return new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels,
-          datasets: [{ data: values, backgroundColor: colores }]
-        },
-        options: {
-          responsive: true,
-          plugins: { legend: { position: 'bottom' }, title: { display: false } }
-        }
-      });
+
+    const dibujar = (mapa, contenedor, titulo) => {
+      const dataArray = [['Fuente', 'Monto']];
+      for (const key in mapa) {
+        dataArray.push([key, mapa[key]]);
+      }
+      if (dataArray.length === 1) dataArray.push(["Sin datos", 1]);
+
+      const data = google.visualization.arrayToDataTable(dataArray);
+      const options = {
+        title: titulo,
+        pieHole: 0.4,
+        legend: { position: 'bottom' }
+      };
+
+      const chart = new google.visualization.PieChart(document.getElementById(contenedor));
+      chart.draw(data, options);
     };
-    chartIngresos = graficar("graficoIngresos", ingresos, chartIngresos);
-    chartGastos = graficar("graficoGastos", egresos, chartGastos);
+
+    dibujar(ingresos, 'graficoIngresos', 'Distribución de Ingresos');
+    dibujar(egresos, 'graficoGastos', 'Distribución de Gastos');
   }
 
   function logout() {
