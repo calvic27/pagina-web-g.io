@@ -51,7 +51,8 @@ window.addEventListener("DOMContentLoaded", () => {
             <td><input type="text" value="${data.glosa}" required></td>
             <td><input type="number" value="${data.monto}" step="0.01" required></td>
             <td><input type="number" value="${data.porcentaje}" step="0.01"></td>
-            <td><span>${data.ahorro.toFixed(2)}</span></td>`;
+            <td><span>${data.ahorro.toFixed(2)}</span></td>
+            <td><button class="eliminar-btn">❌</button></td>`;
           tbody.appendChild(row);
           const tipoSelect = row.cells[1].querySelector("select");
           actualizarFuente(tipoSelect);
@@ -78,7 +79,8 @@ window.addEventListener("DOMContentLoaded", () => {
       <td><input type="text" placeholder="Escribe glosa" required></td>
       <td><input type="number" step="0.01" required></td>
       <td><input type="number" value="10" step="0.01"></td>
-      <td><span>0.00</span></td>`;
+      <td><span>0.00</span></td>
+      <td><button class="eliminar-btn">❌</button></td>`;
     tbody.appendChild(row);
     const tipoSelect = row.cells[1].querySelector("select");
     tipoSelect.addEventListener("change", function () {
@@ -109,6 +111,14 @@ window.addEventListener("DOMContentLoaded", () => {
       calcularAhorro(row);
       generarGraficos(obtenerDatosTabla());
     }));
+
+    const eliminarBtn = row.querySelector(".eliminar-btn");
+    if (eliminarBtn) {
+      eliminarBtn.addEventListener("click", () => {
+        row.remove();
+        generarGraficos(obtenerDatosTabla());
+      });
+    }
   }
 
   function calcularAhorro(row) {
