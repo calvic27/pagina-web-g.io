@@ -25,26 +25,48 @@ h2 {
 
 .graficos-container {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   flex-wrap: wrap;
+  gap: 20px;
   margin: 20px 0;
 }
 
 .grafico {
-  width: 45%;
-  min-width: 300px;
+  flex: 1 1 48%;
   background-color: #fff;
   padding: 10px;
   border-radius: 6px;
   box-shadow: 0 0 6px rgba(0,0,0,0.1);
+  min-width: 300px;
 }
 
-.grafico h3 {
-  text-align: center;
+.grafico-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-#graficoIngresos, #graficoGastos {
+.toggle-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font-size: 16px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toggle-btn:hover {
+  background-color: #0056b3;
+}
+
+.grafico-body {
   height: 300px;
+}
+
+.hidden {
+  display: none;
 }
 
 table {

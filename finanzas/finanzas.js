@@ -207,6 +207,11 @@ window.addEventListener("DOMContentLoaded", () => {
   function logout() {
     auth.signOut().then(() => window.location.href = "../index.html");
   }
+   window.toggleGrafico = function (id, btn) {
+    const el = document.getElementById(id);
+    el.classList.toggle("hidden");
+    btn.textContent = el.classList.contains("hidden") ? "+" : "−";
+  };
   // 👇 Exponer funciones globales para que funcionen en el HTML
 window.agregarFila = agregarFila;
 window.guardarEntradas = guardarEntradas;

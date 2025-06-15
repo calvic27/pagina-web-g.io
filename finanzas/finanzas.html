@@ -19,12 +19,19 @@
 
   <div class="graficos-container">
     <div class="grafico">
-      <h3>📈 Ingresos por Fuente</h3>
-      <div id="graficoIngresos"></div>
+      <div class="grafico-header">
+        <h3>📈 Ingresos por Fuente</h3>
+        <button class="toggle-btn" onclick="toggleGrafico('graficoIngresos', this)">−</button>
+      </div>
+      <div id="graficoIngresos" class="grafico-body"></div>
     </div>
+
     <div class="grafico">
-      <h3>📉 Gastos por Fuente</h3>
-      <div id="graficoGastos"></div>
+      <div class="grafico-header">
+        <h3>📉 Gastos por Fuente</h3>
+        <button class="toggle-btn" onclick="toggleGrafico('graficoGastos', this)">−</button>
+      </div>
+      <div id="graficoGastos" class="grafico-body"></div>
     </div>
   </div>
 
