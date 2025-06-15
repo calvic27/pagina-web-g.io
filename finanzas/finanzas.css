@@ -63,10 +63,14 @@ h2 {
 
 .grafico-body {
   height: 300px;
+  transition: height 0.3s ease;
+  overflow: hidden;
 }
 
-.hidden {
-  display: none;
+.grafico-body.hidden {
+  height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
 }
 
 table {
