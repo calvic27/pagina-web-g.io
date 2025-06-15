@@ -26,19 +26,21 @@ h2 {
 .graficos-container {
   display: flex;
   justify-content: space-between;
-  flex-wrap: wrap;
+  align-items: stretch;
   gap: 20px;
   margin: 20px 0;
+  flex-wrap: nowrap; /* 👈 evita que se vayan abajo si hay espacio */
 }
 
 .grafico {
-  flex: 1 1 48%;
+  flex: 1;
   background-color: #fff;
   padding: 10px;
   border-radius: 6px;
   box-shadow: 0 0 6px rgba(0,0,0,0.1);
-  min-width: 300px;
+  min-width: 0; /* 👈 importante para que no se rompa en contenedores flex */
 }
+
 
 .grafico-header {
   display: flex;

@@ -18,22 +18,22 @@
   <h2>Mis Finanzas</h2>
 
   <div class="graficos-container">
-    <div class="grafico">
-      <div class="grafico-header">
-        <h3>📈 Ingresos por Fuente</h3>
-        <button class="toggle-btn" onclick="toggleGrafico('graficoIngresos', this)">−</button>
-      </div>
-      <div id="graficoIngresos" class="grafico-body"></div>
+  <div class="grafico">
+    <div class="grafico-header">
+      <h3>📈 Ingresos por Fuente</h3>
+      <button class="toggle-btn" onclick="toggleGrafico('graficoIngresos', this)">−</button>
     </div>
-
-    <div class="grafico">
-      <div class="grafico-header">
-        <h3>📉 Gastos por Fuente</h3>
-        <button class="toggle-btn" onclick="toggleGrafico('graficoGastos', this)">−</button>
-      </div>
-      <div id="graficoGastos" class="grafico-body"></div>
-    </div>
+    <div id="graficoIngresos" class="grafico-body"></div>
   </div>
+
+  <div class="grafico">
+    <div class="grafico-header">
+      <h3>📉 Gastos por Fuente</h3>
+      <button class="toggle-btn" onclick="toggleGrafico('graficoGastos', this)">−</button>
+    </div>
+    <div id="graficoGastos" class="grafico-body"></div>
+  </div>
+</div>
 
   <form onsubmit="guardarEntradas(); return false;">
     <table id="tablaFinanzas">
