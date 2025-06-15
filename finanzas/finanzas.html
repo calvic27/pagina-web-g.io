@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mis Finanzas</title>
+  <meta charset="UTF-8">
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <style>
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    input, select { width: 100%; box-sizing: border-box; }
+    #mensaje { margin-top: 10px; color: green; }
+  </style>
+</head>
+<body>
+  <h2>Mis Finanzas</h2>
+  <button onclick="logout()">Cerrar sesión</button>
+
+  <form onsubmit="guardarEntrada(); return false;" style="margin-top: 20px;">
+    <table>
+      <tr>
+        <th>Fecha</th>
+        <th>Tipo</th>
+        <th>Fuente</th>
+        <th>Glosa</th>
+        <th>Monto</th>
+        <th>% Ahorro</th>
+        <th>Ahorro Neto</th>
+      </tr>
+      <tr>
+        <td><input type="date" id="fecha" required></td>
+        <td>
+          <select id="tipo">
+            <option value="Ingreso">Ingreso</option>
+            <option value="Egreso">Egreso</option>
+          </select>
+        </td>
+        <td><input type="text" id="fuente" required></td>
+        <td><input type="text" id="glosa" required></td>
+        <td><input type="number" id="monto" step="0.01" required></td>
+        <td><input type="number" id="porcentaje" value="10" step="0.01"></td>
+        <td><span id="ahorro">0.00</span></td>
+      </tr>
+    </table>
+    <button type="submit">Guardar</button>
+  </form>
+
+  <div id="mensaje"></div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
+      authDomain: "drg-app-a654e.firebaseapp.com",
+      projectId: "drg-app-a654e",
+      storageBucket: "drg-app-a654e.appspot.com",
+      messagingSenderId: "853577402845",
+      appId: "1:853577402845:web:9c7ae221db8bf986cc0e34",
+      measurementId: "G-PWZF6M6NKZ"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    let uid = null;
+
+    // Verifica autenticación
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        uid = user.uid;
+      } else {
+        window.location.href = "index.html";
+      }
+    });
+
+    // Cálculo en tiempo real
+    document.getElementById("monto").addEventListener("input", actualizarAhorro);
+    document.getElementById("porcentaje").addEventListener("input", actualizarAhorro);
+
+    function actualizarAhorro() {
+      const monto = parseFloat(document.getElementById("monto").value) || 0;
+      const porcentaje = parseFloat(document.getElementById("porcentaje").value) || 0;
+      const ahorro = (monto * porcentaje / 100).toFixed(2);
+      document.getElementById("ahorro").textContent = ahorro;
+    }
+
+    // Guarda entrada en Firestore
+    function guardarEntrada() {
+      const data = {
+        fecha: document.getElementById("fecha").value,
+        tipo: document.getElementById("tipo").value,
+        fuente: document.getElementById("fuente").value,
+        glosa: document.getElementById("glosa").value,
+        monto: parseFloat(document.getElementById("monto").value),
+        porcentaje: parseFloat(document.getElementById("porcentaje").value),
+        ahorro: parseFloat(document.getElementById("ahorro").textContent)
+      };
+
+      db.collection("usuarios").doc(uid).collection("finanzas").add(data).then(() => {
+        document.getElementById("mensaje").innerText = "✅ Guardado correctamente";
+        document.getElementById("monto").value = "";
+        document.getElementById("glosa").value = "";
+        document.getElementById("fuente").value = "";
+        document.getElementById("ahorro").textContent = "0.00";
+      });
+    }
+
+    // Logout
+    function logout() {
+      auth.signOut().then(() => window.location.href = "index.html");
+    }
+  </script>
+</body>
+</html>
