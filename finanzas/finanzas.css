@@ -1,0 +1,81 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f8f9fa;
+  margin: 0;
+  padding: 20px;
+  color: #333;
+}
+
+h2 {
+  text-align: center;
+  color: #007bff;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 20px;
+  background-color: white;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #007bff;
+  color: white;
+}
+
+input, select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button {
+  margin: 10px 0;
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #218838;
+}
+
+.eliminar-btn {
+  background-color: #dc3545;
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+}
+
+.eliminar-btn:hover {
+  background-color: #c82333;
+}
+
+#graficoIngresos, #graficoGastos {
+  height: 300px;
+}
+
+.grafico-container {
+  width: 45%;
+  display: inline-block;
+  vertical-align: top;
+  margin: 20px;
+}
+
+#mensaje {
+  margin-top: 15px;
+  color: green;
+  text-align: center;
+}
