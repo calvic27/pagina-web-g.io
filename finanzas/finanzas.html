@@ -67,17 +67,11 @@
     const db = firebase.firestore();
     let uid = null;
 
+    let chartIngresos = null;
+    let chartGastos = null;
+
     const fuentesIngreso = ["Trabajo", "Negocio", "Inversiones", "Otros"];
     const fuentesEgreso = ["Hogar", "Salud", "Alimentación", "Estilo de vida", "Inversión", "Otros"];
-    const glosasIngreso = ["sueldo", "negocio", "ventas", "otros"];
-    const glosasEgreso = [
-      "Gastos de hogar / familia",
-      "Categoria de gastos de salud",
-      "Gastos de alimentacion",
-      "Gastos de estilo de vida",
-      "Gastos de inversion",
-      "Gasto otros"
-    ];
 
     auth.onAuthStateChanged(user => {
       if (user) {
@@ -102,7 +96,7 @@
           </select>
         </td>
         <td><select required></select></td>
-        <td><select required></select></td>
+        <td><input type="text" placeholder="Escribe glosa" required></td>
         <td><input type="number" step="0.01" required></td>
         <td><input type="number" value="10" step="0.01"></td>
         <td><span>0.00</span></td>
@@ -111,39 +105,26 @@
 
       const tipoSelect = row.cells[1].querySelector("select");
       tipoSelect.addEventListener("change", function () {
-        actualizarFuentesYGlosas(this);
-        calcularAhorro(row); // recalcula si cambia el tipo
+        actualizarFuente(this);
+        calcularAhorro(row);
       });
 
-      actualizarFuentesYGlosas(tipoSelect);
+      actualizarFuente(tipoSelect);
       agregarEventos(row);
     }
 
-    function actualizarFuentesYGlosas(select) {
+    function actualizarFuente(select) {
       const row = select.closest("tr");
       const tipo = select.value;
-
       const fuentes = tipo === "Ingreso" ? fuentesIngreso : fuentesEgreso;
-      const glosas = tipo === "Ingreso" ? glosasIngreso : glosasEgreso;
-
       const fuenteSelect = row.cells[2].querySelector("select");
-      const glosaSelect = row.cells[3].querySelector("select");
 
       fuenteSelect.innerHTML = "";
-      glosaSelect.innerHTML = "";
-
       fuentes.forEach(f => {
         const opt = document.createElement("option");
         opt.value = f;
         opt.textContent = f;
         fuenteSelect.appendChild(opt);
-      });
-
-      glosas.forEach(g => {
-        const opt = document.createElement("option");
-        opt.value = g;
-        opt.textContent = g;
-        glosaSelect.appendChild(opt);
       });
     }
 
@@ -154,11 +135,13 @@
 
     function calcularAhorro(row) {
       const tipo = row.cells[1].querySelector("select").value;
-      const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value)) || 0;
-      const porcentaje = parseFloat(row.cells[5].querySelector("input").value) || 0;
+      const montoInput = row.cells[4].querySelector("input");
+      const porcentajeInput = row.cells[5].querySelector("input");
 
-      row.cells[4].querySelector("input").value = monto.toFixed(2); // siempre positivo
+      const monto = Math.abs(parseFloat(montoInput.value)) || 0;
+      montoInput.value = monto.toFixed(2);
 
+      const porcentaje = parseFloat(porcentajeInput.value) || 0;
       const ahorro = tipo === "Ingreso" ? (monto * porcentaje / 100).toFixed(2) : "0.00";
       row.cells[6].querySelector("span").textContent = ahorro;
     }
@@ -177,7 +160,7 @@
         const fecha = row.cells[0].querySelector("input").value;
         const tipo = row.cells[1].querySelector("select").value;
         const fuente = row.cells[2].querySelector("select").value;
-        const glosa = row.cells[3].querySelector("select").value;
+        const glosa = row.cells[3].querySelector("input").value;
         const monto = Math.abs(parseFloat(row.cells[4].querySelector("input").value));
         const porcentaje = parseFloat(row.cells[5].querySelector("input").value);
         const ahorro = parseFloat(row.cells[6].querySelector("span").textContent);
@@ -197,8 +180,7 @@
     }
 
     function generarGraficos(datos) {
-      const ingresos = {};
-      const egresos = {};
+      const ingresos = {}, egresos = {};
 
       datos.forEach(({ tipo, fuente, monto }) => {
         if (tipo === "Ingreso") {
@@ -208,30 +190,23 @@
         }
       });
 
-      const crearGrafico = (ctxId, dataMap, titulo) => {
+      const graficar = (ctxId, dataMap, oldChartRef) => {
         const ctx = document.getElementById(ctxId).getContext("2d");
-        if (Chart.getChart(ctx)) Chart.getChart(ctx).destroy();
-
-        const labels = Object.keys(dataMap);
-        const data = Object.values(dataMap);
-        new Chart(ctx, {
+        if (oldChartRef) oldChartRef.destroy();
+        return new Chart(ctx, {
           type: 'pie',
           data: {
-            labels: labels,
-            datasets: [{ data }]
+            labels: Object.keys(dataMap),
+            datasets: [{
+              data: Object.values(dataMap)
+            }]
           },
-          options: {
-            plugins: {
-              title: {
-                display: false
-              }
-            }
-          }
+          options: { responsive: true }
         });
       };
 
-      crearGrafico("graficoIngresos", ingresos);
-      crearGrafico("graficoGastos", egresos);
+      chartIngresos = graficar("graficoIngresos", ingresos, chartIngresos);
+      chartGastos = graficar("graficoGastos", egresos, chartGastos);
     }
 
     function logout() {
