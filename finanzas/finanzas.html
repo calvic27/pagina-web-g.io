@@ -82,7 +82,7 @@
       row.innerHTML = `
         <td><input type="date" required></td>
         <td>
-          <select onchange="actualizarFuentesYGlosas(this)" required>
+          <select required>
             <option value="Ingreso">Ingreso</option>
             <option value="Egreso">Egreso</option>
           </select>
@@ -94,13 +94,20 @@
         <td><span>0.00</span></td>
       `;
       tbody.appendChild(row);
-      actualizarFuentesYGlosas(row.querySelector("select"));
+
+      const tipoSelect = row.cells[1].querySelector("select");
+      tipoSelect.addEventListener("change", function () {
+        actualizarFuentesYGlosas(this);
+      });
+
+      actualizarFuentesYGlosas(tipoSelect);
       agregarEventos(row);
     }
 
     function actualizarFuentesYGlosas(select) {
       const row = select.closest("tr");
       const tipo = select.value;
+
       const fuentes = tipo === "Ingreso" ? fuentesIngreso : fuentesEgreso;
       const glosas = tipo === "Ingreso" ? glosasIngreso : glosasEgreso;
 
@@ -110,18 +117,18 @@
       fuenteSelect.innerHTML = "";
       glosaSelect.innerHTML = "";
 
-      fuentes.forEach(op => {
-        const option = document.createElement("option");
-        option.value = op;
-        option.textContent = op;
-        fuenteSelect.appendChild(option);
+      fuentes.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        fuenteSelect.appendChild(opt);
       });
 
-      glosas.forEach(op => {
-        const option = document.createElement("option");
-        option.value = op;
-        option.textContent = op;
-        glosaSelect.appendChild(option);
+      glosas.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g;
+        opt.textContent = g;
+        glosaSelect.appendChild(opt);
       });
     }
 
