@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mi Finanzas App</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h2>Bienvenido <span id="userName"></span></h2>
+<button onclick="login()">Iniciar sesión con Google</button>
+<canvas id="grafico" width="400" height="400"></canvas>
+
+<script>
+  // Copia aquí tu config de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCxCWZRHoEvayokHNkoavBaa8_o7vr1SiE",
+  authDomain: "drg-app-a654e.firebaseapp.com",
+  projectId: "drg-app-a654e",
+  storageBucket: "drg-app-a654e.firebasestorage.app",
+  messagingSenderId: "853577402845",
+  appId: "1:853577402845:web:9c7ae221db8bf986cc0e34",
+  measurementId: "G-PWZF6M6NKZ"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  function login() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).then(result => {
+      const user = result.user;
+      document.getElementById("userName").textContent = user.displayName;
+      cargarDatos(user.uid);
+    });
+  }
+
+  function cargarDatos(uid) {
+    db.collection("usuarios").doc(uid).collection("categorias").get().then(snapshot => {
+      const datos = [];
+      snapshot.forEach(doc => datos.push({ nombre: doc.id, monto: doc.data().monto }));
+      dibujarGrafico(datos);
+    });
+  }
+
+  function dibujarGrafico(data) {
+    const ctx = document.getElementById('grafico').getContext('2d');
+    const labels = data.map(c => c.nombre);
+    const valores = data.map(c => c.monto);
+    new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: valores,
+          backgroundColor: ['green', 'red', 'orange', 'blue']
+        }]
+      }
+    });
+  }
+</script>
+</body>
+</html>
