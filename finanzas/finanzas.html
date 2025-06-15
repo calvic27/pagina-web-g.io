@@ -76,13 +76,56 @@
     auth.onAuthStateChanged(user => {
       if (user) {
         uid = user.uid;
-        agregarFila();
+        cargarEntradasGuardadas();
       } else {
         uid = "modo_demo";
         document.getElementById("mensaje").innerText = "⚠️ Modo demo activo. Los datos no se guardarán.";
         agregarFila();
       }
     });
+
+    function cargarEntradasGuardadas() {
+      db.collection("usuarios").doc(uid).collection("finanzas").get()
+        .then(snapshot => {
+          const datos = [];
+          const tbody = document.getElementById("cuerpoTabla");
+          tbody.innerHTML = "";
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td><input type="date" value="${data.fecha}" required></td>
+              <td>
+                <select required>
+                  <option value="Ingreso" ${data.tipo === "Ingreso" ? "selected" : ""}>Ingreso</option>
+                  <option value="Egreso" ${data.tipo === "Egreso" ? "selected" : ""}>Egreso</option>
+                </select>
+              </td>
+              <td><select required></select></td>
+              <td><input type="text" value="${data.glosa}" required></td>
+              <td><input type="number" value="${data.monto}" step="0.01" required></td>
+              <td><input type="number" value="${data.porcentaje}" step="0.01"></td>
+              <td><span>${data.ahorro.toFixed(2)}</span></td>
+            `;
+            tbody.appendChild(row);
+
+            const tipoSelect = row.cells[1].querySelector("select");
+            actualizarFuente(tipoSelect);
+            row.cells[2].querySelector("select").value = data.fuente;
+
+            agregarEventos(row);
+
+            datos.push({ tipo: data.tipo, fuente: data.fuente, monto: data.monto });
+          });
+
+          generarGraficos(datos);
+        })
+        .catch(err => {
+          console.error("Error al cargar datos:", err);
+          document.getElementById("mensaje").innerText = "❌ Error al cargar datos.";
+        });
+    }
 
     function agregarFila() {
       const tbody = document.getElementById("cuerpoTabla");
@@ -169,7 +212,7 @@
       const filas = document.querySelectorAll("#cuerpoTabla tr");
       if (uid === "modo_demo") {
         document.getElementById("mensaje").innerText = "❌ No puedes guardar en modo demo.";
-        generarGraficos(obtenerDatosTabla()); // útil en modo demo
+        generarGraficos(obtenerDatosTabla());
         return;
       }
 
