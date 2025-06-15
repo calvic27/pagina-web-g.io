@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Panel de Finanzas</title>
+  <title>Inicio - Mi Finanzas App</title>
   <meta charset="UTF-8">
-  <!-- Firebase compat -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
-  <h2 id="titulo">Iniciar sesión para acceder a tu panel</h2>
+  <h2 id="titulo">Bienvenido a tu app de finanzas</h2>
 
-  <!-- Botones -->
+  <!-- Botón de login -->
   <button id="loginBtn" onclick="login()">Iniciar sesión con Google</button>
-  <button id="finanzasBtn" style="display:none;" onclick="window.location.href='finanzas.html'">
+
+  <!-- Botón que aparece luego de login -->
+  <button id="finanzasBtn" style="display: none;" onclick="window.location.href='finanzas.html'">
     Ir a Finanzas
   </button>
 
@@ -32,28 +33,26 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // Detectar si el usuario ya está autenticado
     auth.onAuthStateChanged(user => {
       if (user) {
-        document.getElementById("titulo").innerText = "Bienvenido, " + user.displayName;
+        document.getElementById("titulo").innerText = `¡Hola, ${user.displayName}!`;
         document.getElementById("loginBtn").style.display = "none";
         document.getElementById("finanzasBtn").style.display = "inline-block";
       }
     });
 
-    // Función de login
     function login() {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
         .then(result => {
           const user = result.user;
-          document.getElementById("titulo").innerText = "Bienvenido, " + user.displayName;
+          document.getElementById("titulo").innerText = `¡Hola, ${user.displayName}!`;
           document.getElementById("loginBtn").style.display = "none";
           document.getElementById("finanzasBtn").style.display = "inline-block";
         })
         .catch(error => {
           console.error("Error en login:", error);
-          alert("Fallo en login. Revisa la consola.");
+          alert("Hubo un error al iniciar sesión. Revisa la consola.");
         });
     }
   </script>
