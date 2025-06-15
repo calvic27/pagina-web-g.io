@@ -11,41 +11,30 @@
     th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     input, select { width: 100%; box-sizing: border-box; }
     #mensaje { margin-top: 10px; color: green; }
+    button { margin: 10px 0; }
   </style>
 </head>
 <body>
   <h2>Mis Finanzas</h2>
   <button onclick="logout()">Cerrar sesión</button>
 
-  <form onsubmit="guardarEntrada(); return false;" style="margin-top: 20px;">
-    <table>
-      <tr>
-        <th>Fecha</th>
-        <th>Tipo</th>
-        <th>Fuente</th>
-        <th>Glosa</th>
-        <th>Monto</th>
-        <th>% Ahorro</th>
-        <th>Ahorro Neto</th>
-      </tr>
-      <tr>
-        <td><input type="date" id="fecha" required></td>
-        <td>
-          <select id="tipo" onchange="actualizarGlosas()">
-            <option value="Ingreso">Ingreso</option>
-            <option value="Egreso">Egreso</option>
-          </select>
-        </td>
-        <td><input type="text" id="fuente" required></td>
-        <td>
-          <select id="glosa" required></select>
-        </td>
-        <td><input type="number" id="monto" step="0.01" required></td>
-        <td><input type="number" id="porcentaje" value="10" step="0.01"></td>
-        <td><span id="ahorro">0.00</span></td>
-      </tr>
+  <form onsubmit="guardarEntradas(); return false;">
+    <table id="tablaFinanzas">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Tipo</th>
+          <th>Fuente</th>
+          <th>Glosa</th>
+          <th>Monto</th>
+          <th>% Ahorro</th>
+          <th>Ahorro Neto</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpoTabla"></tbody>
     </table>
-    <button type="submit">Guardar</button>
+    <button type="button" onclick="agregarFila()">➕ Agregar Ingreso o Gasto</button>
+    <button type="submit">💾 Guardar Todo</button>
   </form>
 
   <div id="mensaje"></div>
@@ -66,6 +55,8 @@
     const db = firebase.firestore();
     let uid = null;
 
+    const fuentesIngreso = ["Trabajo", "Negocio", "Inversiones", "Otros"];
+    const fuentesEgreso = ["Hogar", "Salud", "Alimentación", "Estilo de vida", "Inversión", "Otros"];
     const glosasIngreso = ["sueldo", "negocio", "ventas", "otros"];
     const glosasEgreso = [
       "Gastos de hogar / familia",
@@ -76,13 +67,57 @@
       "Gasto otros"
     ];
 
-    function actualizarGlosas() {
-      const tipo = document.getElementById("tipo").value;
-      const glosaSelect = document.getElementById("glosa");
-      const opciones = tipo === "Ingreso" ? glosasIngreso : glosasEgreso;
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        uid = user.uid;
+        agregarFila(); // Añadir la primera fila al cargar
+      } else {
+        window.location.href = "../index.html";
+      }
+    });
 
+    function agregarFila() {
+      const tbody = document.getElementById("cuerpoTabla");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="date" required></td>
+        <td>
+          <select onchange="actualizarFuentesYGlosas(this)" required>
+            <option value="Ingreso">Ingreso</option>
+            <option value="Egreso">Egreso</option>
+          </select>
+        </td>
+        <td><select required></select></td>
+        <td><select required></select></td>
+        <td><input type="number" step="0.01" required></td>
+        <td><input type="number" value="10" step="0.01"></td>
+        <td><span>0.00</span></td>
+      `;
+      tbody.appendChild(row);
+      actualizarFuentesYGlosas(row.querySelector("select"));
+      agregarEventos(row);
+    }
+
+    function actualizarFuentesYGlosas(select) {
+      const row = select.closest("tr");
+      const tipo = select.value;
+      const fuentes = tipo === "Ingreso" ? fuentesIngreso : fuentesEgreso;
+      const glosas = tipo === "Ingreso" ? glosasIngreso : glosasEgreso;
+
+      const fuenteSelect = row.cells[2].querySelector("select");
+      const glosaSelect = row.cells[3].querySelector("select");
+
+      fuenteSelect.innerHTML = "";
       glosaSelect.innerHTML = "";
-      opciones.forEach(op => {
+
+      fuentes.forEach(op => {
+        const option = document.createElement("option");
+        option.value = op;
+        option.textContent = op;
+        fuenteSelect.appendChild(option);
+      });
+
+      glosas.forEach(op => {
         const option = document.createElement("option");
         option.value = op;
         option.textContent = op;
@@ -90,41 +125,40 @@
       });
     }
 
-    document.getElementById("monto").addEventListener("input", actualizarAhorro);
-    document.getElementById("porcentaje").addEventListener("input", actualizarAhorro);
-
-    function actualizarAhorro() {
-      const monto = parseFloat(document.getElementById("monto").value) || 0;
-      const porcentaje = parseFloat(document.getElementById("porcentaje").value) || 0;
-      const ahorro = (monto * porcentaje / 100).toFixed(2);
-      document.getElementById("ahorro").textContent = ahorro;
+    function agregarEventos(row) {
+      const montoInput = row.cells[4].querySelector("input");
+      const porcentajeInput = row.cells[5].querySelector("input");
+      [montoInput, porcentajeInput].forEach(input =>
+        input.addEventListener("input", () => calcularAhorro(row))
+      );
     }
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        uid = user.uid;
-        actualizarGlosas();
-      } else {
-        window.location.href = "../index.html";
-      }
-    });
+    function calcularAhorro(row) {
+      const monto = parseFloat(row.cells[4].querySelector("input").value) || 0;
+      const porcentaje = parseFloat(row.cells[5].querySelector("input").value) || 0;
+      const ahorro = (monto * porcentaje / 100).toFixed(2);
+      row.cells[6].querySelector("span").textContent = ahorro;
+    }
 
-    function guardarEntrada() {
-      const data = {
-        fecha: document.getElementById("fecha").value,
-        tipo: document.getElementById("tipo").value,
-        fuente: document.getElementById("fuente").value,
-        glosa: document.getElementById("glosa").value,
-        monto: parseFloat(document.getElementById("monto").value),
-        porcentaje: parseFloat(document.getElementById("porcentaje").value),
-        ahorro: parseFloat(document.getElementById("ahorro").textContent)
-      };
+    function guardarEntradas() {
+      const filas = document.querySelectorAll("#cuerpoTabla tr");
+      const batch = db.batch();
 
-      db.collection("usuarios").doc(uid).collection("finanzas").add(data).then(() => {
-        document.getElementById("mensaje").innerText = "✅ Guardado correctamente";
-        document.getElementById("monto").value = "";
-        document.getElementById("fuente").value = "";
-        document.getElementById("ahorro").textContent = "0.00";
+      filas.forEach(row => {
+        const fecha = row.cells[0].querySelector("input").value;
+        const tipo = row.cells[1].querySelector("select").value;
+        const fuente = row.cells[2].querySelector("select").value;
+        const glosa = row.cells[3].querySelector("select").value;
+        const monto = parseFloat(row.cells[4].querySelector("input").value);
+        const porcentaje = parseFloat(row.cells[5].querySelector("input").value);
+        const ahorro = parseFloat(row.cells[6].querySelector("span").textContent);
+
+        const ref = db.collection("usuarios").doc(uid).collection("finanzas").doc();
+        batch.set(ref, { fecha, tipo, fuente, glosa, monto, porcentaje, ahorro });
+      });
+
+      batch.commit().then(() => {
+        document.getElementById("mensaje").innerText = "✅ Registros guardados con éxito.";
       });
     }
 
